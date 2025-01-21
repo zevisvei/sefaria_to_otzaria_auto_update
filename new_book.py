@@ -1,7 +1,7 @@
-from sefaria.utils import recursive_register_categories
-from sefaria.sefaria_api import SefariaApi
-from sefaria.get_from_sefaria import Book
 import json
+
+from otzaria.utils import recursive_register_categories
+from otzaria.sefaria_api import SefariaApi
 
 
 def json_read(file_path):

@@ -1,6 +1,7 @@
-import pandas as pd
 import json
 import os
+
+import pandas as pd
 
 from otzaria.get_from_sefaria import Book
 from otzaria.utils import sanitize_filename
@@ -30,4 +31,3 @@ for new_book in data:
         if book.links:
             with open(f'{book_file}.json', 'w', encoding='utf-8') as json_file:
                 json.dump(book.links, json_file, indent=4, ensure_ascii=False)
-

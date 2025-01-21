@@ -106,14 +106,18 @@ class Book:
     def process_book(self) -> list | None:
         if not self.exists:
             return
+        level = 0
+        if self.he_title:
+            self.book_content.append(f"<h1>{self.he_title}</h1>\n")
+            level += 1
         if self.is_complex:
             self.node_num = 0
-            self.process_node(self.index["schema"])
+            self.process_node(self.index["schema"], level=level)
         elif self.is_complex_and_simple:
             self.node_num = 0
-            self.process_complex_and_simple_book(self.index["schema"])
+            self.process_complex_and_simple_book(self.index["schema"], level=level)
         else:
-            self.process_simple_book()
+            self.process_simple_book(level=level)
         return self.book_content
 
     def process_complex_and_simple_book(self, node: dict, level: int = 0) -> None:
@@ -160,7 +164,7 @@ class Book:
                     print(self.book_title)
             key.pop()
 
-    def process_simple_book(self) -> None:
+    def process_simple_book(self, level: int = 0) -> None:
         index = self.index
         if self.section_names_lang == "he":
             section_names = self.sefaria_api.get_name(self.book_title).get(
@@ -177,11 +181,7 @@ class Book:
         if text:
             text = text[0]["text"]
             if has_value(text):
-                level = 1
-                if self.he_title:
-                    self.book_content.append(f"<h1>{self.he_title}</h1>\n")
-                    level += 1
-                self.recursive_sections(self.book_title, section_names, text, depth, level)
+                self.recursive_sections(self.book_title, section_names, text, depth, level + 1)
             else:
                 print(self.book_title)
 
