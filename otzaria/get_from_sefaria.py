@@ -13,7 +13,7 @@ class Book:
         lang: str,
         he_title: str | None = None,
         categories: list | None = None,
-        get_links: list | bool = True,
+        get_links: bool = True,
     ) -> None:
 
         self.book_title = book_title
@@ -303,7 +303,7 @@ class Book:
                             if section_names[-depth] in ("דף", "Daf")
                             else to_gematria(i)
                         )
-                    if depth > 1 and section_names:
+                    if depth > 1 and section_names and section_names[-depth] not in skip_section_names:
                         self.book_content.append(
                             f"<h{min(level, 6)}>{section_names[-depth]} {letter}</h{min(level, 6)}>\n"
                         )
@@ -322,9 +322,6 @@ class Book:
                     links
                 )
                 anchor_ref.pop()
-
-    def get_links_content(self, book_title: str):
-        links = self.sefaria_api.get_links(book_title)
 
     def parse_terms(self, term: str) -> str | None:
         terms = self.sefaria_api.get_terms(term)
@@ -347,7 +344,7 @@ class Book:
             link_type = link.get("type")
             ref = link.get("ref")
             anchor_ref = link.get("anchorRef")
-            text = link.get("he") 
+            text = link.get("he")
             if not anchor_ref or not ref or not text:
                 continue
 
