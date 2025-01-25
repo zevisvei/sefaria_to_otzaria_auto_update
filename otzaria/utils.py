@@ -76,14 +76,13 @@ def read_json(file_path: str) -> dict:
     return content
 
 
-def footnotes(html_content: str) -> tuple[str, list[tuple[str, BeautifulSoup]]]:
+def footnotes(html_content: str) -> tuple[str, list[str]]:
     soup = BeautifulSoup(html_content, 'html.parser')
     notes = []
     for sup_tag in soup.find_all('sup', class_='footnote-marker'):
-        next_tag = sup_tag.find_next_sibling() 
+        next_tag = sup_tag.find_next_sibling()
         if next_tag and next_tag.name == 'i' and 'footnote' in next_tag.get('class', []):
-            note_id = f"note_{len(notes) + 1}"
             next_tag.extract()
-            notes.append((note_id, next_tag))
+            notes.append((next_tag.string))
 
     return str(soup), notes

@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from otzaria.sefaria_api import SefariaApi
 from otzaria.get_from_sefaria import Book
-from otzaria.utils import sanitize_filename, recursive_register_categories
+from otzaria.utils import sanitize_filename, recursive_register_categories, footnotes
 
 
 def filter_new_books(new_list: list[dict[str, str | list]], file_path: str):
@@ -38,8 +38,31 @@ def main(get_links: bool = False, only_new: bool = True, old_json_file_path: str
             if book_content:
                 os.makedirs(file_path, exist_ok=True)
                 book_file = os.path.join(file_path, file_name)
+                book_content_copy = []
+                dict_links = []
+                all_footnotes = []
+                for index, line in enumerate(book_content, start=1):
+                    if "footnote-marker" in line:
+                        line, footnotes_list = footnotes(line)
+                        for foot_note in footnotes_list:
+                            dict_links.append({
+                                "line_index_1": index,
+                                "heRef_2": "הערות",
+                                "path_2": f"הערות על {file_name}.txt",
+                                "line_index_2": len(all_footnotes) + 1,
+                                "Conection Type": "commentary"
+                            })
+                            all_footnotes.append(foot_note)
+                    book_content_copy.append(line)
                 with open(f"{book_file}.txt", "w", encoding="utf-8") as f:
-                    f.writelines(book_content)
+                    f.writelines(book_content_copy)
+                if all_footnotes:
+                    footnotes_file = os.path.join(file_path, f"הערות על {file_name}.txt")
+                    with open(footnotes_file, 'w', encoding='utf-8') as file:
+                        file.write("\n".join(all_footnotes))
+                    json_file = os.path.join(file_path, f"{file_name}_links.json")
+                    with open(json_file, "w", encoding="utf-8") as file:
+                        json.dump(dict_links, file)
                 if book_ins.links:
                     with open(f'{book_file}.json', 'w', encoding='utf-8') as json_file:
                         json.dump(book_ins.links, json_file, indent=4, ensure_ascii=False)
