@@ -1,6 +1,7 @@
 import os
 import json
 
+import pandas as pd
 
 from otzaria.get_from_export import Book
 from otzaria.utils import sanitize_filename, footnotes
@@ -13,7 +14,7 @@ def get_book(book_title: str, text_file_path: str, schema_file_path: str, lang: 
                     schema_file_path)
     book_content = book_ins.process_book()
     metadata, categories = book_ins.get_metadata()
-    return book_content, metadata, categories
+    return book_content, metadata, categories, book_ins.refs
 
 
 def main(json_folder, schemas_folder, output_folder, lang: str):
@@ -34,7 +35,7 @@ def main(json_folder, schemas_folder, output_folder, lang: str):
                     print(text_file)
                     title = file_path.split(os.sep)[-3].replace(' ', '_')
                     schema_file_name = os.path.join(schemas_folder, title + '.json')
-                    book_content, metadata, categories = get_book(title, text_file, schema_file_name, lang)
+                    book_content, metadata, categories, refs = get_book(title, text_file, schema_file_name, lang)
                     output_path = [sanitize_filename(i) for i in categories]
                     os.makedirs(os.path.join(output_folder, *output_path), exist_ok=True)
                     output_file_name = os.path.join(output_folder, *output_path, sanitize_filename(metadata["title"]))
@@ -58,11 +59,13 @@ def main(json_folder, schemas_folder, output_folder, lang: str):
                         book_content_copy.append(line)
                     with open(f'{output_file_name}.txt', 'w', encoding='utf-8') as file:
                         file.writelines(book_content_copy)
+                    df = pd.DataFrame(refs)
+                    df.to_csv(f"{output_file_name}.csv", index=False)
                     if all_footnotes:
-                        footnotes_file = os.path.join(output_folder, f"הערות על {title}.txt")
+                        footnotes_file = os.path.join(output_folder, *output_path, f"הערות על {title}.txt")
                         with open(footnotes_file, 'w', encoding='utf-8') as file:
                             file.write("\n".join(all_footnotes))
-                        json_file = os.path.join(output_folder, f"{title}_links.json")
+                        json_file = os.path.join(output_folder, *output_path, f"{title}_links.json")
                         with open(json_file, "w", encoding="utf-8") as file:
                             json.dump(dict_links, file)
                 except Exception as e:

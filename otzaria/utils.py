@@ -81,6 +81,8 @@ def footnotes(html_content: str) -> tuple[str, list[str]]:
     notes = []
     for sup_tag in soup.find_all('sup', class_='footnote-marker'):
         next_tag = sup_tag.find_next_sibling()
+        sup_tag.attrs["style"] = "color: gray;"
+        del sup_tag.attrs["class"]
         if next_tag and next_tag.name == 'i' and 'footnote' in next_tag.get('class', []):
             next_tag.extract()
             notes.append((next_tag.string))
